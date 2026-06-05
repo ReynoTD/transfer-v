@@ -1,0 +1,19 @@
+#variables de entorno
+.env
+
+#carpeta de pruebas /sandbox
+/sandbox
+
+#carpeta de imagenes
+/images
+
+# cache de Python
+__pycache__/
+*.pyc
+.playwright/
+
+# entornos virtuales
+venv/
+.venv/
+env/
+
