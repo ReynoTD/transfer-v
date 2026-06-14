@@ -1,129 +1,180 @@
-# Transfer V - Verificador de Transferencias Interbancarias
+# Transfer V - Verificador de Transferencias Interbancarias (V1)
 
-Script en Python que permite verificar transferencias bancarias mediante el portal CEP (Comprobante Electrónico de Pago) de Banxico.
+**Transfer V** es una solución automatizada que integra inteligencia artificial y automatización web para verificar la validez de transferencias interbancarias en México a través de un Bot de Telegram.
 
-## Características
+El sistema utiliza **Gemini** para extraer datos de comprobantes (vouchers), **Playwright** para consultar el portal CEP (Comprobante Electrónico de Pago) de Banxico y **Telegram** como interfaz de usuario.
 
-- Extracción automática de datos desde un comprobante utilizando Gemini.
-- Normalización y estandarización de la información obtenida.
-- Consulta automática del portal CEP de Banxico mediante Playwright.
-- Verificación de la existencia de la transferencia en el sistema de Banxico.
+---
+
+## Características principales
+
+- 🤖 **Bot de Telegram:** Interfaz amigable para registrar cuentas y enviar comprobantes.
+- 🧠 **IA con Gemini:** Extracción automática y precisa de datos desde imágenes de transferencias.
+- 🌐 **Automatización con Playwright:** Consulta automática en el portal oficial de Banxico CEP.
+- 💾 **Persistencia de Usuarios:** Registro y guardado de cuenta beneficiaria por usuario mediante JSON.
+- 🛠️ **Modo Debug:** Herramientas integradas para diagnóstico y visualización del proceso.
+- 🏗️ **Arquitectura Modular:** Separación clara entre servicios de IA, automatización y gestión de usuarios.
+
+---
+
+## Estructura del proyecto
+
+```text
+transfer-v/
+│
+├── bot.py                  # Punto de entrada para el Bot de Telegram
+├── main.py                 # Orquestador de la lógica de negocio
+│
+├── services/               # Módulos de servicios especializados
+│   ├── gemini_service.py   # Extracción de datos con Google Gemini
+│   ├── cep_service.py      # Consulta automatizada en Banxico
+│   ├── user_service.py     # Gestión de persistencia de usuarios
+│   └── config.py           # Configuración centralizada y Debug Mode
+│
+├── data/                   # Almacenamiento de datos persistentes
+│   └── usuarios.json       # Base de datos simple de usuarios y cuentas
+│
+├── temp/                   # Archivos temporales
+│   └── imagenes/           # Imágenes descargadas temporalmente para proceso
+│
+├── debug/                  # Capturas de pantalla generadas en modo DEBUG
+│
+├── README.md               # Documentación del proyecto
+├── requirements.txt        # Dependencias de Python
+├── .env.example            # Plantilla de variables de entorno
+└── .gitignore              # Archivos ignorados por Git
+```
+
+---
 
 ## Requisitos
 
-- Python 3.10 o superior
-- API Key de Gemini
-- Google Chrome o Chromium
+- **Python 3.10** o superior.
+- **API Key de Gemini:** Obtener en [Google AI Studio](https://aistudio.google.com/).
+- **Telegram Bot Token:** Obtener mediante [@BotFather](https://t.me/botfather).
+- **Navegador Chromium:** Instalado automáticamente mediante Playwright.
+
+---
 
 ## Instalación
 
-Clona el repositorio:
+1. **Clonar el repositorio:**
+   ```bash
+   git clone https://github.com/ReynoTD/transfer-v.git
+   cd transfer-v
+   ```
 
-```bash
-git clone <url-del-repositorio>
-cd transfer-v
-```
+2. **Instalar dependencias:**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-Instala las dependencias:
+3. **Instalar navegador para Playwright:**
+   ```bash
+   playwright install chromium
+   ```
 
-```bash
-pip install -r requirements.txt
-```
-
-Instala los navegadores de Playwright:
-
-```bash
-playwright install
-```
+---
 
 ## Configuración
 
-Crea un archivo `.env` en la raíz del proyecto:
+Crea un archivo `.env` en la raíz del proyecto basándote en `.env.example`:
 
 ```env
-GEMINI_API_KEY=coloca_tu_api_key_aqui
+GEMINI_API_KEY=tu_api_key_de_gemini
+TELEGRAM_BOT_TOKEN=tu_token_de_telegram
+DEBUG=false
+DEBUG_PAUSE_SECONDS=0
 ```
 
-## Flujo de trabajo
+### Variables de Entorno:
+- `GEMINI_API_KEY`: Clave para acceder a los modelos de IA de Google.
+- `TELEGRAM_BOT_TOKEN`: Token para conectar el script con tu bot de Telegram.
+- `DEBUG`: Establecer en `true` para ver el navegador Playwright y logs detallados.
+- `DEBUG_PAUSE_SECONDS`: Segundos que el navegador permanecerá abierto tras la consulta (solo en modo DEBUG).
 
-1. El usuario proporciona una imagen del comprobante.
-2. Gemini analiza la imagen y extrae los datos relevantes.
-3. La información es normalizada y validada.
-4. Se solicita la cuenta beneficiaria.
-5. El sistema consulta automáticamente el portal CEP de Banxico.
-6. Se informa si la transferencia fue encontrada.
+---
 
-## Uso
+## Comandos del Bot
 
-Coloca la imagen del comprobante dentro de la carpeta del proyecto.
+### `/start`
+Muestra el mensaje de bienvenida e instrucciones iniciales.
 
-En `main.py`, especifica el nombre de la imagen:
+### `/cuenta <número_de_cuenta>`
+Registra o actualiza tu cuenta beneficiaria (18 dígitos CLABE o número de tarjeta). Esta cuenta será utilizada para todas tus verificaciones futuras.
+*Ejemplo:* `/cuenta 123456789012345678`
 
-```python
-if __name__ == "__main__":
-    asyncio.run(main("comprobante.jpeg"))
-```
+---
 
-Ejecuta el programa:
+## Flujo de Trabajo
 
-```bash
-python main.py
-```
+1. **Registro:** El usuario registra su cuenta beneficiaria una sola vez.
+2. **Envío:** El usuario envía una fotografía del comprobante de transferencia al bot.
+3. **Descarga:** El bot descarga la imagen de forma segura en la carpeta `temp/`.
+4. **Extracción (IA):** Gemini analiza la imagen y extrae: fecha, bancos, monto y clave de rastreo.
+5. **Consulta (Web):** Playwright abre el portal de Banxico e ingresa los datos automáticamente.
+6. **Respuesta:** El bot envía al usuario el resultado de la verificación y los datos extraídos.
+7. **Limpieza:** Se elimina la imagen temporal para proteger la privacidad.
 
-## Ejemplo de ejecución
+---
 
-```bash
-$ python main.py
+## Modo Debug
 
-👉 Ingrese la CUENTA BENEFICIARIA: 123456789012345678
+Activar `DEBUG=true` permite:
+- **Navegador Visible:** Observar en tiempo real cómo Playwright llena el formulario en Banxico.
+- **Capturas de Diagnóstico:** Generación automática de imágenes en `debug/` antes y después de la consulta.
+- **Logs Extendidos:** Visualización en consola de los datos extraídos por Gemini y la respuesta cruda de Banxico.
+- **Trazabilidad:** Tracebacks completos en caso de errores en la automatización.
 
---- DATOS FINALES A ENVIAR ---
+---
 
---- Navegando a Banxico ---
+## Ejemplo de Uso (Telegram)
 
---- Consultando CEP ... ---
+1. **Usuario:** `/start`
+2. **Bot:** `Bot activo. Registra tu cuenta con /cuenta...`
+3. **Usuario:** `/cuenta 123456789012345678`
+4. **Bot:** `Cuenta registrada correctamente.`
+5. **Usuario:** *[Envía foto del voucher]*
+6. **Bot:** `Procesando comprobante...`
+7. **Bot:** 
+   ```text
+   ✅ Verificación completada
+   CEP encontrado exitosamente.
 
-✅ RESULTADO ENCONTRADO
-```
+   Datos extraídos:
+   📅 Fecha: 25-05-2026
+   💰 Monto: 1300.00
+   🏦 Origen: BBVA MEXICO
+   🏦 Destino: BANAMEX
+   🔢 Rastreo: MBAN01002605250068386019
+   ```
 
-## Ejemplo de salida
+---
 
-```json
-{
-  "fecha": "01-06-2026",
-  "clave_rastreo": "ABC123456",
-  "banco_origen": "BBVA MEXICO",
-  "banco_destino": "NU MEXICO",
-  "monto": "1500.00"
-}
-```
+## Limitaciones Vigentes
 
-Si la transferencia es localizada correctamente en CEP, se mostrará:
+- **Transferencias Internas:** Banxico CEP solo registra transferencias entre bancos distintos (SPEI). Las transferencias entre cuentas del mismo banco no se pueden verificar aquí.
+- **Calidad de Imagen:** La precisión de la extracción depende de que los datos en la imagen sean legibles.
+- **Disponibilidad:** El servicio depende de la disponibilidad operativa del portal de Banxico y de la API de Gemini.
 
-```bash
-✅ RESULTADO ENCONTRADO
-```
+---
 
-## Limitaciones
+## Tecnologías Utilizadas
 
-- Las transferencias internas (mismo banco origen y destino) no pueden consultarse mediante CEP.
-- La cuenta beneficiaria se solicita manualmente antes de realizar la consulta.
-- La precisión de la extracción depende de la calidad de la imagen proporcionada.
-- Gemini puede interpretar incorrectamente algunos datos en comprobantes con baja calidad o formatos poco comunes.
-- El navegador se ejecuta en modo visible (`headless=False`) para facilitar la depuración.
+- **Python 3.10+**
+- **Google Gemini API** (IA Generativa)
+- **Playwright** (Automatización Web)
+- **python-telegram-bot** (Interfaz de Chat)
+- **Pillow** (Procesamiento de Imágenes)
+- **python-dotenv** (Gestión de Configuración)
 
-## Tecnologías utilizadas
+---
 
-- Python
-- Gemini API
-- Playwright
-- Pillow
-- python-dotenv
+## Próximas Funcionalidades (Roadmap)
 
-## Próximas funcionalidades
-
-- Refactorización para convertir el proyecto en un bot.
-- Ejecución sin interacción por consola.
-- Integración con Telegram.
-- Recepción de imágenes enviadas por los usuarios.
-- Procesamiento automático de consultas.
+- [ ] Soporte para múltiples cuentas por usuario (etiquetas como PRINCIPAL, TRABAJO).
+- [ ] Historial de verificaciones realizadas.
+- [ ] Migración a base de datos SQL (SQLite/PostgreSQL).
+- [ ] Despliegue mediante Docker.
+- [ ] Panel administrativo para métricas de uso.
+- [ ] Soporte para otros tipos de comprobantes dinámicos.
