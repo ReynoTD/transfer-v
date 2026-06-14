@@ -4,8 +4,15 @@
 #carpeta de pruebas /sandbox
 /sandbox
 
+#datos persistentes
+data/usuarios.json
+
+#temporales
+temp/
+
 #carpeta de imagenes
 /images
+/debug
 
 # cache de Python
 __pycache__/
