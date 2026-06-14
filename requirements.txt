@@ -1,4 +1,5 @@
 google-genai
+pillow
 playwright
 python-dotenv
-Pillow
+python-telegram-bot
